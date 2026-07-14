@@ -154,13 +154,12 @@ async def analyze_node(state: dict[str, Any]) -> dict[str, Any]:
 
 
 async def approve_risk_node(state: dict[str, Any]) -> dict[str, Any]:
-    """REQ-HITL-001 — Human approval gate. Interrupt is applied at graph-build time."""
-    tid = _tid(state)
-    await _audit(tid, event_type=EventType.INTERRUPT, node="approve_risk",
-                 requirement=Requirement.APPROVE_RISK,
-                 payload={"gate": "approve_risk"})
-    await publish_event(tid, {"type": "interrupt", "gate": "approve_risk"})
-    # Return an empty update — state change happens when the human resumes via API.
+    """REQ-HITL-001 — Human approval gate. Interrupt is applied at graph-build time.
+
+    This body never executes: interrupt_before pauses ahead of it, and the
+    approvals API resumes with as_node="approve_risk" (marking it as run).
+    INTERRUPT auditing lives in app.api.rfp.record_interrupt at the pause point.
+    """
     return {}
 
 
@@ -197,12 +196,11 @@ async def compose_node(state: dict[str, Any]) -> dict[str, Any]:
 
 
 async def approve_final_node(state: dict[str, Any]) -> dict[str, Any]:
-    """REQ-HITL-002 — Final human approval gate."""
-    tid = _tid(state)
-    await _audit(tid, event_type=EventType.INTERRUPT, node="approve_final",
-                 requirement=Requirement.APPROVE_FINAL,
-                 payload={"gate": "approve_final"})
-    await publish_event(tid, {"type": "interrupt", "gate": "approve_final"})
+    """REQ-HITL-002 — Final human approval gate.
+
+    Never executes (see approve_risk_node) — INTERRUPT auditing happens in
+    the API layer at the actual pause point.
+    """
     return {}
 
 

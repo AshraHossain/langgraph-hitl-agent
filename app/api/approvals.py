@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
+from app.api.rfp import record_interrupt
 from app.database import insert_audit_event
 from app.graph.builder import build_graph
 from app.graph.checkpointer import current_checkpointer
@@ -68,6 +69,8 @@ async def submit_approval(thread_id: str, req: ApprovalRequest) -> ThreadState:
     values = new_snapshot.values or {}
     next_list = list(new_snapshot.next or [])
     pending = next((n for n in next_list if n in ("approve_risk", "approve_final")), None)
+    if pending:
+        await record_interrupt(thread_id, pending)
     return ThreadState(
         thread_id=thread_id,
         status=values.get("status", "UNKNOWN"),
