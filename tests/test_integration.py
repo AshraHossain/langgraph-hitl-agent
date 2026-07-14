@@ -8,6 +8,7 @@ import os
 import uuid
 
 import pytest
+from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
 pytestmark = pytest.mark.integration
@@ -54,8 +55,11 @@ async def test_full_api_happy_path(client_env):
     )
 
     app = create_app()
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    # ASGITransport never runs startup/shutdown, so the lifespan's DB pool /
+    # checkpointer / Redis init only happens under LifespanManager
+    async with LifespanManager(app, startup_timeout=30) as manager, AsyncClient(
+        transport=ASGITransport(app=manager.app), base_url="http://test"
+    ) as ac:
         # health
         r = await ac.get("/healthz")
         assert r.status_code == 200
