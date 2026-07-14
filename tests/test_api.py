@@ -35,6 +35,9 @@ def app(monkeypatch: pytest.MonkeyPatch, fake_llm) -> FastAPI:
     monkeypatch.setattr(rfp_mod, "current_checkpointer", lambda: saver)
     monkeypatch.setattr(approvals_mod, "current_checkpointer", lambda: saver)
     monkeypatch.setattr(rfp_mod, "upsert_thread", AsyncMock())
+    # record_interrupt (used by both submit and resume paths) writes audit + redis
+    monkeypatch.setattr(rfp_mod, "insert_audit_event", noop)
+    monkeypatch.setattr(rfp_mod, "publish_event", noop)
     monkeypatch.setattr(approvals_mod, "insert_audit_event", AsyncMock())
     monkeypatch.setattr(audit_mod, "fetch_audit_events", AsyncMock(return_value=[]))
 
