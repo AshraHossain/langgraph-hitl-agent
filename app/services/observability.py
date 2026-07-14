@@ -4,8 +4,8 @@ formalises tagging so every run carries the thread_id and node name.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
 
 
 def init_langsmith() -> None:
@@ -20,7 +20,4 @@ def trace_tags(**tags: str) -> Iterator[None]:
     """Attach tags to the current LangChain run via run-config metadata."""
     # LangGraph picks these up when passed through `config={"metadata": {...}}`;
     # this helper exists so nodes can opt-in inside their closures.
-    try:
-        yield
-    finally:
-        return
+    yield

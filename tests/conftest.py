@@ -54,6 +54,7 @@ def thread_id() -> str:
 async def in_memory_graph():
     """Graph compiled against MemorySaver — unit-test friendly."""
     from langgraph.checkpoint.memory import MemorySaver
+
     from app.graph.builder import build_graph
 
     saver = MemorySaver()
